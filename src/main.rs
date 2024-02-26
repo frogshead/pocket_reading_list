@@ -1,5 +1,5 @@
 use getpocket::{list::ListExt, GetPocket};
-use std::{collections::btree_map::IterMut, env, thread, time};
+use std::{env, thread, time};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,10 +15,12 @@ println!("last time fetched: {:?}", items.since);
 let items_count = items.list.len();
     println!("Articles saved: {:?}", items_count);
     let first = items.list.first_entry().unwrap();
-    println!("first entry:\n{:?}", first);
+    // println!("first entry:\n{:?}", first);
+    let x = first.get().get("resolved_url").unwrap();
+    println!("{x}");
 
     for item in items.list {
-        println!("url: {:?}\n", item);
+        println!("{:}", item.1.get("given_url").unwrap());
     }
     Ok(())
     
@@ -31,12 +33,11 @@ async fn init_pocket_client() -> Result<GetPocket, Box<dyn std::error::Error>>{
     let consumer_key = env::var("POCKET_CONSUMER_KEY").expect("POCKET_CONSUMER_KEY env needs to be set");
     let redirect_uri = env::var("POCKET_REDIRECT_URI").expect("POCKET_REDIRECT_URI env needs to be set");
 
-    let pocket: Option<GetPocket>;
 
     match env::var("POCKET_ACCESS_TOKEN") {
-    Ok(token) => {pocket =  Some(GetPocket::new(consumer_key, redirect_uri, token).await.unwrap());},
+    Ok(token) => {return Ok(GetPocket::new(consumer_key, redirect_uri, token).await.unwrap());},
     Err(_) => {
-        pocket = Some(GetPocket::init(consumer_key, redirect_uri, |token|{
+        return Ok(GetPocket::init(consumer_key, redirect_uri, |token|{
             println!("token: {:?}",token);
             env::set_var("POCKET_ACCESS_TOKEN", token);
         }, |url|{
@@ -46,7 +47,6 @@ async fn init_pocket_client() -> Result<GetPocket, Box<dyn std::error::Error>>{
             Ok(true)
         }).await.unwrap());
 
-    },
-}
-    Ok(pocket.unwrap())
+        },
+    }
 }
