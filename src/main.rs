@@ -15,10 +15,12 @@ println!("last time fetched: {:?}", items.since);
 let items_count = items.list.len();
     println!("Articles saved: {:?}", items_count);
     let first = items.list.first_entry().unwrap();
-    println!("first entry:\n{:?}", first);
+    // println!("first entry:\n{:?}", first);
+    let x = first.get().get("resolved_url").unwrap();
+    println!("{x}");
 
     for item in items.list {
-        println!("url: {:?}\n", item);
+        println!("{:}", item.1.get("given_url").unwrap());
     }
     Ok(())
     
@@ -45,6 +47,6 @@ async fn init_pocket_client() -> Result<GetPocket, Box<dyn std::error::Error>>{
             Ok(true)
         }).await.unwrap());
 
-    },
-}
+        },
+    }
 }
